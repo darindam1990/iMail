@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Infinite Scroll Demo</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css">
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+    <!--<script src="lib/js/hammer.js"></script>-->
+
+    <link href='http://fonts.googleapis.com/css?family=Fauna+One' rel='stylesheet' type='text/css'>
+
+    <style type="text/css">
+
+        .badge{
+            -webkit-border-radius: 999px;
+            -moz-border-radius: 999px;
+            border-radius: 999px;
+            behavior: url(PIE.htc);
+            background-color: #333;
+            color: #fff;
+            font-family: 'Fauna One', 'serif';
+            text-align: center;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            display: inline;
+            float: left;
+            margin: 9px;
+        }
+
+        #list{
+            margin-left: 5%;
+            margin-right: 10%;
+        }
+
+        .item{
+            min-height: 50px;
+            line-height: 50px;
+            list-style: none;
+            font-family: 'Fauna One', serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            border-bottom: 1px solid #333;
+        }
+
+        .delete{
+
+            position: absolute;
+            float: right;
+
+            display: inline-block;
+            *display: inline;
+            padding: 4px 12px;
+            *margin-left: .3em;
+            margin-left: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 20px;
+            text-align: center;
+
+            vertical-align: middle;
+            cursor: pointer;
+
+            border: 1px solid #cccccc;
+            *border: 0;
+
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+
+            *zoom: 1;
+            -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+            -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+
+            color: #ffffff;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+            background-color: #e00;
+            *background-color: #e00;
+            background-image: -moz-linear-gradient(top, #f00, #e00);
+            background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f00), to(#e00));
+            background-image: -webkit-linear-gradient(top, #f00, #e00);
+            background-image: -o-linear-gradient(top, #f00, #e00);
+            background-image: linear-gradient(to bottom, #f00, #e00);
+            background-repeat: repeat-x;
+            border-color: #f00 #e00 #c00;
+            border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0044cc', GradientType=0);
+            filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+        }
+
+        .recycle-bin{
+            float: right;
+            margin-top: 1px;
+            margin-right: 1px ;
+            width: 32px;
+            height: 32px;
+            display: none;
+        }
+
+        .loading{
+            position: absolute;
+            left: 50%;
+            bottom: 20%;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+
+        $(window).scroll(function() {
+            if($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+                $(document).append("<img src='./assets/img/loading.gif' class='loading' />");
+                setTimeout("lazyLoader()", 5000);
+            }
+        });
+
+        $(document).ready(function(){
+            listItemGenerator(1, 100);
+        });
+
+        function lazyLoader(){
+            var start = $("#list li").length + 1;
+            var end = start + 100;
+            listItemGenerator(start, end);
+        }
+
+        function listItemGenerator(start, end){
+            for(var i = start; i <= end; i++){
+
+                var badge = document.createElement("div");
+                $(badge).attr({
+                    'class' : 'badge',
+                    'id' : 'badge-' + i
+                });
+                $(badge).text(i);
+
+                var listItem = document.createElement("li");
+                $(listItem).attr({
+                   'class' : 'item',
+                   'id' : 'list-item-' + i
+                });
+
+                $(listItem).data('delete-on', false);
+
+                $(listItem).text("Lorem ipsum dolor sit amet, consectetur");
+                setCallBack("#list-item-" + i, i);
+
+                $("#list").append(badge);
+                $("#list").append(listItem);
+            }
+        }
+
+
+        /*$(document).on('pageinit', function() {
+            $(document).on('swipeleft', '.item', function (e) {
+                alert('swipeleft');
+            });
+        });
+*/
+
+        function setCallBack(id, index){
+
+            //alert($(id));
+
+            $(document).on('swipeleft', id, function(event){
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                if($(id).data('delete-on') === false){
+
+                    //alert($(id).data('delete-on'));
+                    //alert("Delete button added");
+                    $(id).data('delete-on', true);
+
+                    //console.log($(id).data());
+
+                    var position = $('.item').index($(id));
+
+                    var deleteButton = document.createElement("button");
+                    $(deleteButton).attr({
+                        'id' : 'delete-btn-' + index,
+                        'class' : 'delete'
+                    });
+
+                    $(deleteButton).click(function(event){
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        //alert(id);
+                        $(id).remove();
+                        $("#badge-" + index).remove();
+
+                        if($(".delete").length == 0){
+                            $(".recycle-bin").css('display', 'none');
+                        }
+                        return;
+                    })
+
+                    $(deleteButton).html("Delete")
+
+                    $('#list li:eq(' + position + ')').append(deleteButton);
+
+                    $(".recycle-bin").css('display', 'block');
+
+                    return;
+                }
+                /*else{
+                    if($(id).data('delete-on') === true){
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        $(id).data('delete-on', false);
+                        $("#delete-btn-" + index).remove();
+
+                        if($(".delete").length == 0){
+                            $(".recycle-bin").css('display', 'none');
+                        }
+
+                        return;
+                    }
+                }*/
+            });
+
+            $(document).on('swiperight', id, function(event){
+                if($(id).data('delete-on') === true){
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    $(id).data('delete-on', false);
+                    $("#delete-btn-" + index).remove();
+
+                    if($(".delete").length == 0){
+                        $(".recycle-bin").css('display', 'none');
+                    }
+
+                    return;
+                }
+            });
+
+
+            /*$(document).on('swiperight', id, function(){
+
+                alert($(id).data('delete-on'));
+
+
+            });*/
+        }
+
+    </script>
+
+</head>
+<body>
+
+    <div data-role="page">
+    <div data-role="header">
+        <h1>Demo</h1>
+    </div>
+
+    <div id='container' data-role="content">
+        <img src="./assets/img/bin.png" class="recycle-bin"/>
+        <ul id="list">
+        </ul>
+    </div>
+    <div data-role="footer">
+        <h4>&copy; Arindam 2013</h4>
+    </div><!-- /footer -->
+    </div><!-- /page -->
+
+</body>
+</html>
